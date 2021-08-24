@@ -1,0 +1,20 @@
+{
+	"main": "index.html",
+	"preload": "preload.js",
+	"logo": "logo.png",
+	"platform": ["win32", "darwin", "linux"],
+	"development": {
+		"main": "http://localhost:8080/"
+	},
+	"pluginSetting": {
+		"single": true
+	},
+	"features": [
+		{
+			"code": "92e530c2450043968cf14ab74e87db22",
+			"explain": "typescript 转 markdown",
+			"platform": ["win32", "darwin", "linux"],
+			"cmds": ["typescript to markdown", "ts to md"]
+		}
+	]
+}
