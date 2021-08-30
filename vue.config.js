@@ -5,6 +5,7 @@ module.exports = {
       css: {
         modules: {
           localIdentName: "[local]_[hash:base64:5]",
+          auto: (resourcePath) => resourcePath.endsWith(".less"),
         },
         localsConvention: "camelCaseOnly",
       },
