@@ -1,13 +1,14 @@
 import LayoutComponent from "@/layout/default";
 import styles from "./index.less";
 import * as recast from "recast";
+4;
 import { namedTypes as n, visit } from "ast-types";
 import * as typescriptParse from "recast/parsers/typescript";
 import { onMounted, defineComponent } from "vue";
 
 const code = `
 type b<T = any> = {
-	a: () => void;
+	a: (n:string,b?:(t:string)=>void) => void;
 	// dsd
 	coverRight?: ffff;
 	/*
@@ -39,13 +40,15 @@ export default defineComponent({
     onMounted(() => {
       const schema: {
         name?: string;
-        typeParameters?: { name?: string; default?: string }[];
+        type: "function" | "literal";
+        typeParameters?: { name: string; default?: string }[];
         properties?: {
           name?: string;
           optional?: boolean;
           type?: string;
           comments?: string[];
         }[];
+        returnType?: string;
       }[] = [];
 
       const getType = (tsType?: string) => {
@@ -121,6 +124,38 @@ export default defineComponent({
         return typeParameters;
       };
 
+      const formateTypeAnnotation = (
+        node: any,
+        property: {
+          name?: string;
+          optional?: boolean;
+          type?: string;
+          comments?: string[];
+        }
+      ) => {
+        if (n.TSTypeAnnotation.check(node)) {
+          if (node.typeAnnotation.type === "TSTypeReference") {
+            if (node.typeAnnotation.typeName.type === "Identifier") {
+              property.type = node.typeAnnotation.typeName.name;
+            } else if (
+              node.typeAnnotation.typeName.type === "TSQualifiedName"
+            ) {
+              property.type = getTSQualifiedNameString(
+                node.typeAnnotation.typeName
+              );
+            }
+          } else if (node.typeAnnotation.type === "TSTypeLiteral") {
+            property.type = property.name;
+            formatTypeLiteral(node.typeAnnotation, property.name);
+          } else if (node.typeAnnotation.type === "TSFunctionType") {
+            property.type = property.name;
+            formatFunctionType(node.typeAnnotation, property.name);
+          } else {
+            property.type = getType(node.typeAnnotation.type);
+          }
+        }
+      };
+
       const formatTypeLiteral = (
         node: any,
         typeName?: string,
@@ -137,42 +172,7 @@ export default defineComponent({
                 property.name = s.key.name;
               }
               if (s.typeAnnotation?.type === "TSTypeAnnotation") {
-                if (
-                  s.typeAnnotation.typeAnnotation.type === "TSTypeReference"
-                ) {
-                  if (
-                    s.typeAnnotation.typeAnnotation.typeName.type ===
-                    "Identifier"
-                  ) {
-                    property.type =
-                      s.typeAnnotation.typeAnnotation.typeName.name;
-                  } else if (
-                    s.typeAnnotation.typeAnnotation.typeName.type ===
-                    "TSQualifiedName"
-                  ) {
-                    property.type = getTSQualifiedNameString(
-                      s.typeAnnotation.typeAnnotation.typeName
-                    );
-                  }
-                } else if (
-                  s.typeAnnotation.typeAnnotation.type === "TSTypeLiteral"
-                ) {
-                  property.type = property.name;
-                  formatTypeLiteral(
-                    s.typeAnnotation.typeAnnotation,
-                    property.name
-                  );
-                } else if (
-                  s.typeAnnotation.typeAnnotation.type === "TSFunctionType"
-                ) {
-                  property.type = property.name;
-                  formatFunctionType(
-                    s.typeAnnotation.typeAnnotation,
-                    property.name
-                  );
-                } else {
-                  property.type = getType(s.typeAnnotation.typeAnnotation.type);
-                }
+                formateTypeAnnotation(s.typeAnnotation, property);
               }
               if (s.comments) {
                 const comments: string[] = [];
@@ -188,6 +188,7 @@ export default defineComponent({
           });
           schema.push({
             name: typeName,
+            type: "literal",
             typeParameters: typeParameters,
             properties: properties,
           });
@@ -201,8 +202,30 @@ export default defineComponent({
       ) => {
         if (n.TSFunctionType.check(node)) {
           const properties: typeof schema[0]["properties"] = [];
+          if (node.parameters.length > 0) {
+            node.parameters.map((s) => {
+              if (n.Identifier.check(s)) {
+                const property: typeof properties[0] = {
+                  optional: s.optional,
+                  name: s.name,
+                };
+                formateTypeAnnotation(s.typeAnnotation, property);
+                if (s.comments) {
+                  const comments: string[] = [];
+                  s.comments.map((c) => {
+                    if (c.leading) {
+                      comments.push(c.value);
+                    }
+                  });
+                  property.comments = comments;
+                }
+                properties.push(property);
+              }
+            });
+          }
           schema.push({
             name: typeName,
+            type: "function",
             typeParameters: typeParameters,
             properties: properties,
           });
