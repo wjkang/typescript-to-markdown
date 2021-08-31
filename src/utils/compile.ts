@@ -127,6 +127,9 @@ const formateTypeAnnotation = (
     });
   } else if (n.TSLiteralType.check(node)) {
     property.type = formatLiteralType(node);
+  } else if (n.TSArrayType.check(node)) {
+    formateTypeAnnotation(node.elementType, property);
+    property.type = `${property.type}[]`;
   } else {
     property.type = getType(node.type);
   }
