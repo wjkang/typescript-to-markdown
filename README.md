@@ -1,5 +1,3 @@
-# utools-plugin-starter
-
 ## Project setup
 ```
 yarn install

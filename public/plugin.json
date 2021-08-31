@@ -3,17 +3,28 @@
 	"preload": "preload.js",
 	"logo": "logo.png",
 	"platform": ["win32", "darwin", "linux"],
-	
+	"development": {
+		"main": "http://localhost:8080/"
+	},
 	"pluginSetting": {
-		"single": true
+		"single": true,
+		"height": 700
 	},
 	"features": [
 		{
 			"code": "92e530c2450043968cf14ab74e87db22",
-			"icon":"logo.png",
-			"explain": "typescript 转 markdown",
+			"icon": "logo.png",
+			"explain": "TypeScript 转 Markdown",
 			"platform": ["win32", "darwin", "linux"],
-			"cmds": ["typescript to markdown", "ts to md"]
+			"cmds": [
+				"TypeScript 转 Markdown",
+				"ts to md",
+				{
+					"type": "regex",
+					"label": "TypeScript 转 Markdown",
+					"match": "/(.|\\s)*(type|typescript|interface|string|number|boolean|void)(.|\\s)*/i"
+				}
+			]
 		}
 	]
 }
