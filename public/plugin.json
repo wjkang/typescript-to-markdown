@@ -3,9 +3,6 @@
 	"preload": "preload.js",
 	"logo": "logo.png",
 	"platform": ["win32", "darwin", "linux"],
-	"development": {
-		"main": "http://localhost:8080/"
-	},
 	"pluginSetting": {
 		"single": true,
 		"height": 700
