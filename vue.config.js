@@ -1,5 +1,6 @@
 module.exports = {
   outputDir: "docs",
+  publicPath: process.env.page ? "/typescript-to-markdown/" : "/",
   css: {
     extract: false,
     requireModuleExtension: false,
